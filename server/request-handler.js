@@ -41,28 +41,24 @@ var requestHandler = function(request, response) {
   // console.logs in your code.
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
 
+  if (request.method === 'POST' && request.url.includes('/classes/messages')) {
 
-  if (request.method === 'POST') {
+    var body = '';
+    request.on('data', function (data) {
+      body += data;
+      //piecing the data chunks together
+    });
 
-    if (request.url.includes('/classes/messages')) {
-      var body = '';
-      request.on('data', function (data) {
-        body += data;
-        //piecing the data chunks together
-      });
+    request.on('end', function () {
+      //push to global array
+      storage.results.push(JSON.parse(body));
+      var statusCode = 201;
+      var headers = defaultCorsHeaders;
 
-      request.on('end', function () {
-        //push to global array
-        console.log('body is ', body);
-        storage.results.push(JSON.parse(body));
-        var statusCode = 201;
-        var headers = defaultCorsHeaders;
-
-        headers['Content-Type'] = 'application/json';
-        response.writeHead(statusCode, headers);
-      });
+      //headers['Content-Type'] = 'text/html';
+      response.writeHead(statusCode, headers);
       response.end();
-    }
+    });
 
   } else if (request.method === 'GET' && request.url.includes('/classes/messages')) {
     
@@ -72,7 +68,7 @@ var requestHandler = function(request, response) {
     response.writeHead(statusCode, headers);
     response.end(JSON.stringify(storage));
 
-  } else if (request.method === 'OPTIONS') {
+  } else if (request.method === 'OPTIONS' && request.url.includes('/classes/messages')) {
     var statusCode = 200;
     var headers = defaultCorsHeaders;
     headers['Content-Type'] = 'application/json';

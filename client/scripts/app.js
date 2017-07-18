@@ -42,9 +42,9 @@ var app = {
       url: app.server,
       type: 'POST',
       data: JSON.stringify(message),
+      dataType: 'text',
       contentType: 'application/json',
       success: function (data) {
-        console.log('got inside success');
         // Clear messages input
         app.$message.val('');
 
@@ -61,12 +61,14 @@ var app = {
     $.ajax({
       url: app.server,
       type: 'GET',
+      //dataType: 'json',
       // data: { order: '-createdAt' },
-      contentType: 'application/json',
+      //contentType: 'application/json',
       success: function(data) {
       //console.log('fetched data ', data.results[0]);
         // Don't bother if we have nothing to work with
         if (!data.results || !data.results.length) { return; }
+        console.log('got inside success fetch ', data);
 
         // Store messages for caching later
         app.messages = data.results;
@@ -156,15 +158,17 @@ var app = {
     // Add in the message data using DOM methods to avoid XSS
     // Store the username in the element's data attribute
     var $username = $('<span class="username"/>');
-    $username.text(message.username + ': ').attr('data-roomname', message.roomname).attr('data-username', message.username).appendTo($chat);
-
+  
+    var parsedName = message.username.split('%20').join(' ');
+    $username.text(parsedName + ': ').attr('data-roomname', message.roomname).attr('data-username', parsedName).appendTo($chat);
+    
     // Add the friend class
-    if (app.friends[message.username] === true) {
+    if (app.friends[parsedName] === true) {
       $username.addClass('friend');
     }
 
     var $message = $('<br><span/>');
-    $message.text(message.text).appendTo($chat);
+    $message.text(message.message).appendTo($chat);
 
     // Add the message to the UI
     app.$chats.append($chat);
