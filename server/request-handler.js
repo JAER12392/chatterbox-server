@@ -19,7 +19,10 @@ var defaultCorsHeaders = {
   'access-control-max-age': 10 // Seconds.
 };
 
-var storage = {results: []};
+var storage = {results: [{
+  username: 'Jono',
+  message: 'Do my bidding!'
+}]};
 
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -41,9 +44,8 @@ var requestHandler = function(request, response) {
 
   if (request.method === 'POST') {
 
-    if (request.url === '/classes/messages') {
+    if (request.url.includes('/classes/messages')) {
       var body = '';
-
       request.on('data', function (data) {
         body += data;
         //piecing the data chunks together
@@ -51,32 +53,31 @@ var requestHandler = function(request, response) {
 
       request.on('end', function () {
         //push to global array
+        console.log('body is ', body);
         storage.results.push(JSON.parse(body));
         var statusCode = 201;
         var headers = defaultCorsHeaders;
+
         headers['Content-Type'] = 'application/json';
         response.writeHead(statusCode, headers);
-        response.end();
       });
+      response.end();
     }
 
-  } else if (request.method === 'GET' && request.url === '/classes/messages') {
-    var body = '';
+  } else if (request.method === 'GET' && request.url.includes('/classes/messages')) {
+    
+    var statusCode = 200;
+    var headers = defaultCorsHeaders;
+    headers['Content-Type'] = 'application/json';
+    response.writeHead(statusCode, headers);
+    response.end(JSON.stringify(storage));
 
-    request.on('data', function (data) {
-      body += data;
-      //piecing the data chunks together
-    });
-
-    request.on('end', function () {
-      
-      var statusCode = 200;
-      var headers = defaultCorsHeaders;
-      headers['Content-Type'] = 'application/json';
-      response.writeHead(statusCode, headers);
-      response.end(JSON.stringify(storage));
-
-    });
+  } else if (request.method === 'OPTIONS') {
+    var statusCode = 200;
+    var headers = defaultCorsHeaders;
+    headers['Content-Type'] = 'application/json';
+    response.writeHead(statusCode, headers);
+    response.end();
   } else {
     var statusCode = 404;
     var headers = defaultCorsHeaders;
